@@ -1,0 +1,32 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Resume {
+  id     Int     @id @default(autoincrement())
+  title  String
+  age    Int?
+  salary String?
+  url    String  @unique
+
+  experience_lines Experience[]
+}
+
+model Experience {
+  id               Int    @id @default(autoincrement())
+  duration_mounth  Int
+  company          String
+  position         String
+  responsibilities String
+
+  resume   Resume @relation(fields: [resumeId], references: [id])
+  resumeId Int
+}
