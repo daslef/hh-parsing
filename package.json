@@ -4,12 +4,14 @@
   "description": "",
   "main": "index.mjs",
   "scripts": {
+    "serve": "node app.cjs",
     "parse": "node parsing.mjs"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "^5.4.2",
+    "express": "^4.18.2",
     "puppeteer": "^21.3.6"
   },
   "devDependencies": {
