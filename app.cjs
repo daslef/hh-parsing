@@ -1,11 +1,22 @@
 const express = require('express')
-const app = express()
-const port = 3000
+const { translitRusEng } = require('./translit.cjs')
 
-app.get('/', (req, res) => {
-  res.send('Hello World!')
+const app = express()
+
+app.use(express.json())
+
+app.post('/positions', async (req, res) => {
+  const data = req.body
+  const position = translitRusEng(data.position)
+
+  import('./parsing.mjs')
+    .then(async parsing => {
+      res.json({
+        "resumes": await parsing.default(position)
+      })
+    })
 })
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
+app.listen(3000, () => {
+  console.log(`App listening on 3000`)
 })
