@@ -78,6 +78,7 @@ export default async function parse(position) {
             "--disable-setuid-sandbox",
             "--no-sandbox",
             "--no-zygote",
+            "--disable-features=site-per-process"
         ]
     })
 
@@ -100,7 +101,7 @@ export default async function parse(position) {
         resumes.push(...pageResumes)
     }
 
-    for (let resumeIndex = 0; resumeIndex < 5; resumeIndex++) {
+    for (let resumeIndex = 0; resumeIndex < 2; resumeIndex++) {
         await page.goto(`${resumes[resumeIndex].url}`, {
             waitUntil: 'networkidle0',
             timeout: 0
