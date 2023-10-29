@@ -2,7 +2,7 @@
   "name": "parsing",
   "version": "1.0.0",
   "description": "",
-  "main": "index.mjs",
+  "main": "app.cjs",
   "scripts": {
     "serve": "node app.cjs",
     "parse": "node parsing.mjs"

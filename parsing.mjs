@@ -77,7 +77,6 @@ export default async function parse(position) {
         args: [
             "--disable-setuid-sandbox",
             "--no-sandbox",
-            "--single-process",
             "--no-zygote",
         ]
     })
