@@ -70,13 +70,10 @@ export default async function parse(position) {
     const url = `https://spb.hh.ru/resumes/${position}`
 
     const browser = await puppeteer.launch({
-        headless: true,
-        ignoreDefaultArgs: ["--disable-extensions"],
         executablePath:
             process.env.NODE_ENV === "production"
                 ? process.env.PUPPETEER_EXECUTABLE_PATH
                 : puppeteer.executablePath(),
-        ignoreHTTPSErrors: true,
         args: [
             "--disable-setuid-sandbox",
             "--no-sandbox",
