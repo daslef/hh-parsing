@@ -44,10 +44,10 @@ function translitRusEng(value = '') {
                 return symbolsTableRus[loweredLetter]
             }
             else if (loweredLetter === ' ') {
-                return lettersEdited.push('_')
+                return '_'
             }
 
-            return lettersEdited.push(letter)
+            return letter
         })
         .join('')
 };
