@@ -67,6 +67,7 @@ function getResumeDetails() {
 }
 
 export default async function parse(position) {
+    const resumes = []
     const url = `https://spb.hh.ru/resumes/${position}`
 
     const browser = await puppeteer.launch({
@@ -74,46 +75,54 @@ export default async function parse(position) {
             process.env.NODE_ENV === "production"
                 ? process.env.PUPPETEER_EXECUTABLE_PATH
                 : puppeteer.executablePath(),
-        args: [
-            "--disable-setuid-sandbox",
-            "--no-sandbox",
-        ]
+        headless: false,
+        // args: [
+        //     "--no-sandbox",
+        //     "--disable-setuid-sandbox",
+        //     "--no-zygote",
+        //     "--single-process"
+        // ]
     })
 
-    const page = await browser.newPage()
+    try {
+        const page = await browser.newPage()
 
-    await page.setViewport({
-        width: 800,
-        height: 900,
-        deviceScaleFactor: 1
-    })
-
-    const resumes = []
-
-    for (let pageNumber = 0; pageNumber < 5; pageNumber++) {
-        await page.goto(`${url}?page=${pageNumber}`, {
-            waitUntil: 'networkidle0',
-            timeout: 0
-        })
-        const pageResumes = await page.evaluate(getResumes)
-        resumes.push(...pageResumes)
-    }
-
-    for (let resumeIndex = 0; resumeIndex < resumes.length; resumeIndex++) {
-        await page.goto(`${resumes[resumeIndex].url}`, {
-            waitUntil: 'networkidle0',
-            timeout: 0
+        await page.setViewport({
+            width: 800,
+            height: 900,
+            deviceScaleFactor: 1
         })
 
-        const details = await page.evaluate(getResumeDetails)
-        console.log(details)
+        for (let pageNumber = 0; pageNumber < 5; pageNumber++) {
+            await page.goto(`${url}?page=${pageNumber}`, {
+                waitUntil: 'networkidle0',
+                timeout: 0
+            })
 
-        resumes[resumeIndex] = { ...resumes[resumeIndex], ...details }
+            const pageResumes = await page.evaluate(getResumes)
+            resumes.push(...pageResumes)
+        }
+
+        for (let resumeIndex = 0; resumeIndex < 2; resumeIndex++) {
+            await page.goto(`${resumes[resumeIndex].url}`, {
+                waitUntil: 'networkidle0',
+                timeout: 0
+            })
+
+            const details = await page.evaluate(getResumeDetails)
+            console.log(details)
+
+            resumes[resumeIndex] = { ...resumes[resumeIndex], ...details }
+        }
+    } catch (e) {
+        console.log(e)
+    } finally {
+        await browser.close()
+        return resumes
     }
 
     // console.log(resumes, resumes.length)
-    await browser.close()
-    return resumes
+
 }
 
 // await updateDatabase(resumes)
