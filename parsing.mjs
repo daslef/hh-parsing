@@ -77,8 +77,6 @@ export default async function parse(position) {
         args: [
             "--disable-setuid-sandbox",
             "--no-sandbox",
-            "--no-zygote",
-            "--disable-features=site-per-process"
         ]
     })
 
@@ -92,7 +90,7 @@ export default async function parse(position) {
 
     const resumes = []
 
-    for (let pageNumber = 0; pageNumber < 1; pageNumber++) {
+    for (let pageNumber = 0; pageNumber < 5; pageNumber++) {
         await page.goto(`${url}?page=${pageNumber}`, {
             waitUntil: 'networkidle0',
             timeout: 0
@@ -101,7 +99,7 @@ export default async function parse(position) {
         resumes.push(...pageResumes)
     }
 
-    for (let resumeIndex = 0; resumeIndex < 2; resumeIndex++) {
+    for (let resumeIndex = 0; resumeIndex < resumes.length; resumeIndex++) {
         await page.goto(`${resumes[resumeIndex].url}`, {
             waitUntil: 'networkidle0',
             timeout: 0
@@ -119,3 +117,4 @@ export default async function parse(position) {
 }
 
 // await updateDatabase(resumes)
+// https://dropmefiles.com/G2mOL
