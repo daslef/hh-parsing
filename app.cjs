@@ -11,7 +11,7 @@ app.post('/positions', async (req, res) => {
 
   import('./parsing.mjs')
     .then(async parsing => {
-      return res.json({
+      res.json({
         "resumes": await parsing.default(position)
       })
     })

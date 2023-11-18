@@ -1,4 +1,6 @@
-import puppeteer from 'puppeteer'
+import * as utils from 'node:util'
+import puppeteer from 'puppeteer-extra'
+import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
 
@@ -66,47 +68,85 @@ function getResumeDetails() {
     return { ...details, specialization, educationCourses }
 }
 
+const delay = utils.promisify(setTimeout)
+
+async function retry(fn, retryDelay = 1000, retryNumber = 5) {
+    while (retryNumber > 0) {
+        try {
+            await fn()
+            return
+        } catch (e) {
+            retryNumber--
+            retryDelay *= 2
+            await delay(retryDelay)
+        }
+    }
+}
+
 export default async function parse(position) {
     const resumes = []
     const url = `https://spb.hh.ru/resumes/${position}`
+
+    puppeteer.use(StealthPlugin())
 
     const browser = await puppeteer.launch({
         executablePath:
             process.env.NODE_ENV === "production"
                 ? process.env.PUPPETEER_EXECUTABLE_PATH
                 : puppeteer.executablePath(),
-        headless: false,
-        // args: [
-        //     "--no-sandbox",
-        //     "--disable-setuid-sandbox",
-        //     "--no-zygote",
-        //     "--single-process"
-        // ]
+        headless: 'new',
+        args: [
+            '--allow-running-insecure-content',
+            '--autoplay-policy=user-gesture-required',
+            '--disable-component-update',
+            '--disable-domain-reliability',
+            '--disable-features=AudioServiceOutOfProcess,IsolateOrigins,site-per-process',
+            '--disable-print-preview',
+            '--disable-setuid-sandbox',
+            '--disable-site-isolation-trials',
+            '--disable-speech-api',
+            '--disable-web-security',
+            '--disk-cache-size=33554432',
+            '--enable-features=SharedArrayBuffer',
+            '--hide-scrollbars',
+            '--disable-gpu',
+            '--mute-audio',
+            '--no-default-browser-check',
+            '--no-pings',
+            '--no-sandbox',
+            '--no-zygote',
+            '--disable-extensions',
+        ],
+        defaultViewport: {
+            width: 800,
+            height: 900,
+            deviceScaleFactor: 1
+        }
     })
 
     try {
         const page = await browser.newPage()
 
-        await page.setViewport({
-            width: 800,
-            height: 900,
-            deviceScaleFactor: 1
-        })
-
         for (let pageNumber = 0; pageNumber < 5; pageNumber++) {
-            await page.goto(`${url}?page=${pageNumber}`, {
-                waitUntil: 'networkidle0',
-                timeout: 0
-            })
+            await retry(async () => {
+                await page.goto(`${url}?page=${pageNumber}`, {
+                    waitUntil: 'networkidle2',
+                    timeout: 30000
+                })
 
-            const pageResumes = await page.evaluate(getResumes)
-            resumes.push(...pageResumes)
+                const pageResumes = await page.evaluate(getResumes)
+                resumes.push(...pageResumes)
+            })
         }
 
-        for (let resumeIndex = 0; resumeIndex < 2; resumeIndex++) {
-            await page.goto(`${resumes[resumeIndex].url}`, {
-                waitUntil: 'networkidle0',
-                timeout: 0
+        console.log(resumes)
+
+        for (let resumeIndex = 0; resumeIndex < resumes.length; resumeIndex++) {
+            await retry(async () => {
+                await page.goto(`${resumes[resumeIndex].url}`, {
+                    waitUntil: 'networkidle2',
+                    timeout: 30000
+                })
             })
 
             const details = await page.evaluate(getResumeDetails)
